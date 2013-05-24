@@ -409,8 +409,15 @@ forms is given in the
 \section{Recognition of Continuous Gesture with Dynamic Hand Poses}
 
 \subsection{Hand Tracking Using a RGB-D Camera}
-he RGB-D(epth) camera such as the Kinect is a relatively cheap sensor for 
-body motion tracking.  
+The RGB-D(epth) camera such as the Kinect is a relatively cheap sensor for 
+body motion tracking which can used in everyday applications. Camera-based
+sensors are also less obtrusive as users do not need to wear any additional
+devices. The depth camera is less sensitive to lighting conditions than the RGB
+camera but the RGB camera can still provide some additional information to
+further improve the tracking accuracy.
+
+As we are interested in gestures with both dynamic path and hand poses, we want
+to extract hand pose features for the recognition engine.
 
 \section{Experimental Evaluation}
 We evaluate our hand tracking and gesture recognition algorithm with part of the ChAirGest 
