@@ -160,31 +160,6 @@ is available on the web page to help you with the
 \keywords{ACM proceedings, \LaTeX, text tagging}
 
 \section{Introduction}
-The \textit{proceedings} are the records of a conference.
-ACM seeks to give these conference by-products a uniform,
-high-quality appearance.  To do this, ACM has some rigid
-requirements for the format of the proceedings documents: there
-is a specified format (balanced  double columns), a specified
-set of fonts (Arial or Helvetica and Times Roman) in
-certain specified sizes (for instance, 9 point for body copy),
-a specified live area (18 $\times$ 23.5 cm [7" $\times$ 9.25"]) centered on
-the page, specified size of margins (1.9 cm [0.75"]) top, (2.54 cm [1"]) bottom
-and (1.9 cm [.75"]) left and right; specified column width
-(8.45 cm [3.33"]) and gutter size (.83 cm [.33"]).
-
-The good news is, with only a handful of manual
-settings\footnote{Two of these, the {\texttt{\char'134 numberofauthors}}
-and {\texttt{\char'134 alignauthor}} commands, you have
-already used; another, {\texttt{\char'134 balancecolumns}}, will
-be used in your very last run of \LaTeX\ to ensure
-balanced column heights on the last page.}, the \LaTeX\ document
-class file handles all of this for you.
-
-The remainder of this document is concerned with showing, in
-the context of an ``actual'' document, the \LaTeX\ commands
-specifically available for denoting the structure of a
-proceedings paper, rather than with giving rigorous descriptions
-or explanations of such commands.
 
 \section{Related Work}
 Wobbrock et al. \cite{Wobbrock09} identified 6 \textit{forms} of gesture for surface
@@ -246,7 +221,7 @@ First, consider the equation, shown as an inline equation above:
 Notice how it is formatted somewhat differently in
 the \textbf{displaymath}
 environment.  Now, we'll enter an unnumbered equation:
-\begin{displaymath}\sum_{i=0}^{\infty} x + 1\end{displaymath}
+
 and follow it with another numbered equation:
 \begin{equation}\sum_{i=0}^{\infty}x_i=\int_{0}^{\pi+2} f\end{equation}
 just to demonstrate \LaTeX's able handling of numbering.
@@ -321,18 +296,6 @@ Command&A Number&Comments\\ \hline
 \end{table*}
 % end the environment with {table*}, NOTE not {table}!
 
-\subsection{Figures}
-Like tables, figures cannot be split across pages; the
-best placement for them
-is typically the top or the bottom of the page nearest
-their initial cite.  To ensure this proper ``floating'' placement
-of figures, use the environment
-\textbf{figure} to enclose the figure and its caption.
-
-This sample document contains examples of \textbf{.eps}
-and \textbf{.ps} files to be displayable with \LaTeX.  More
-details on each of these is found in the \textit{Author's Guide}.
-
 \begin{figure}
 \centering
 \epsfig{file=fly.eps}
@@ -345,26 +308,6 @@ details on each of these is found in the \textit{Author's Guide}.
 \caption{A sample black and white graphic (.eps format)
 that has been resized with the \texttt{epsfig} command.}
 \end{figure}
-
-
-As was the case with tables, you may want a figure
-that spans two columns.  To do this, and still to
-ensure proper ``floating'' placement of tables, use the environment
-\textbf{figure*} to enclose the figure and its caption.
-and don't forget to end the environment with
-{figure*}, not {figure}!
-
-\begin{figure*}
-\centering
-\epsfig{file=flies.eps}
-\caption{A sample black and white graphic (.eps format)
-that needs to span two columns of text.}
-\end{figure*}
-
-Note that either {\textbf{.ps}} or {\textbf{.eps}} formats are
-used; use
-the \texttt{{\char'134}epsfig} or \texttt{{\char'134}psfig}
-commands as appropriate for the different file types.
 
 \begin{figure}
 \centering
@@ -407,6 +350,7 @@ forms is given in the
 \textit{Author's  Guidelines}.
 
 \section{Recognition of Continuous Gesture with Dynamic Hand Poses}
+Abstract Hidden Markov Model based recognition engine.
 
 \subsection{Hand Tracking Using a RGB-D Camera}
 The RGB-D(epth) camera such as the Kinect is a relatively cheap sensor for 
@@ -417,7 +361,36 @@ camera but the RGB camera can still provide some additional information to
 further improve the tracking accuracy.
 
 As we are interested in gestures with both dynamic path and hand poses, we want
-to extract hand pose features for the recognition engine.
+to extract hand pose features for our recognition engine. As a first step, we
+consider gestures using left hand only.
+
+We use the Microsoft Kinect SDK for user detection and skeleton tracking. The
+skeleton tracking is based on depth information and tracks \# body joints
+including the both hand joints.
+We notice that while the skeleton tracking works well for articulated body poses,
+it fails to track hand joints correctly when the hands are close to and in
+front of the body or the hand movement is fast.
+
+\begin{figure*}
+\centering
+\epsfig{file=flies.eps}
+\caption{Examples when skeleton tracking fails.}
+\label{fig:skin}
+\end{figure*}
+
+To improve the hand tracking result we use the RGB camera information for skin
+detection. We convert the RGB image i into YCrCb color space and perform a
+binary classification of each pixel. We filter out the wrongly detected skin
+region (background or objects with colors similar to skin color) by finding the
+intersection between the skin mask and the user mask. Then we find the contours
+with perimeter that is greater than the minimum possible hand shape. This
+results in contours for the head and two hands and possible other contours due
+to wrong skin region close to the body. To find the most probable contour for
+the left hand, we consider the Euclidean distance between each contour's cetner
+rank the contours with a cost metric
+\begin{displaymath}
+\text{Cost}(c_i) = ||c_i.center - s.center|| + ||c_i.center - 
+\end{displaymath}
 
 \section{Experimental Evaluation}
 We evaluate our hand tracking and gesture recognition algorithm with part of the ChAirGest 
@@ -427,17 +400,17 @@ there are 600 gesture occurrences. For each user, we use 2 sessions of recording
 In each session there are one occurrence for each gesture/resting posture combination 
 resulting in 30 gesture occurrences. We use one session for training and one session for testing.
 
+30 fps (frame per second) and down sample to 10 fps to increase training speed.
+
 \section{Future Work}
+We note that our method of combining skin color detection, user detection and
+skeleton tracking can fail when the user is wearing clothes with color similar
+to the skin color. Consider use a probability distribution of skin color instead
+of binary classification. Consider use STIP feature. Track two hands or consider
+features for the whole body. 
+
 \section{Conclusions}
-This paragraph will end the body of this sample document.
-Remember that you might still have Acknowledgments or
-Appendices; brief samples of these
-follow.  There is still the Bibliography to deal with; and
-we will make a disclaimer about that here: with the exception
-of the reference to the \LaTeX\ book, the citations in
-this paper are to articles which have nothing to
-do with the present subject and are used as
-examples only.
+
 %\end{document}  % This is where a 'short' article might terminate
 
 %ACKNOWLEDGMENTS are optional
