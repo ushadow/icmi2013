@@ -47,6 +47,10 @@
 
 \documentclass{sig-alternate}
 
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
 \begin{document}
 %
 % --- Author Metadata here ---
@@ -55,8 +59,8 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{Recognition of Continuous Gestures with Dynamic Hand Poses for Mid-Air
-Interaction}
+\title{Recognition of Continuous Gestures with Dynamic Hand Pose and Path for
+Mid-Air Interaction}
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -82,7 +86,7 @@ Interaction}
 % without further effort on your part as the last section in
 % the body of your article BEFORE References or any Appendices.
 
-\numberofauthors{8} %  in this sample file, there are a *total*
+\numberofauthors{2} %  in this sample file, there are a *total*
 % of EIGHT authors. SIX appear on the 'first-page' (for formatting
 % reasons) and the remaining two appear in the \additionalauthors section.
 %
@@ -112,245 +116,66 @@ Randall Davis \\
        \affaddr{}\\
        \email{davis@csail.mit.edu}
 }
-% There's nothing stopping you putting the seventh, eighth, etc.
-% author on the opening page (as the 'third row') but we ask,
-% for aesthetic reasons that you place these 'additional authors'
-% in the \additional authors block, viz.
-\additionalauthors{Additional authors: John Smith (The Th{\o}rv{\"a}ld Group,
-email: {\texttt{jsmith@affiliation.org}}) and Julius P.~Kumquat
-(The Kumquat Consortium, email: {\texttt{jpkumquat@consortium.net}}).}
-\date{30 July 1999}
-% Just remember to make sure that the TOTAL number of authors
-% is the number that will appear on the first page PLUS the
-% number that will appear in the \additionalauthors section.
 
 \maketitle
 \begin{abstract}
-This paper provides a sample of a \LaTeX\ document which conforms,
-somewhat loosely, to the formatting guidelines for
-ACM SIG Proceedings. It is an {\em alternate} style which produces
-a {\em tighter-looking} paper and was designed in response to
-concerns expressed, by authors, over page-budgets.
-It complements the document \textit{Author's (Alternate) Guide to
-Preparing ACM SIG Proceedings Using \LaTeX$2_\epsilon$\ and Bib\TeX}.
-This source file has been written with the intention of being
-compiled under \LaTeX$2_\epsilon$\ and BibTeX.
-
-The developers have tried to include every imaginable sort
-of ``bells and whistles", such as a subtitle, footnotes on
-title, subtitle and authors, as well as in the text, and
-every optional component (e.g. Acknowledgments, Additional
-Authors, Appendices), not to mention examples of
-equations, theorems, tables and figures.
-
-To make best use of this sample document, run it through \LaTeX\
-and BibTeX, and compare this source code with the printed
-output produced by the dvi file. A compiled PDF version
-is available on the web page to help you with the
-`look and feel'.
+We explored different hand pose features for recognition of continuous gestures
+with dynamic hand pose and path. We use Abstract Hidden Markov Model (AHMM)
+which handles gesture segmentation and transition inherently within the model.
 \end{abstract}
 
-% A category with the (minimum) three required fields
-\category{H.4}{Information Systems Applications}{Miscellaneous}
 %A category including the fourth, optional field follows...
-\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
+\category{H.5.2}{Information Systems}{Information Interfaces and
+Presentation}[User Interfaces]
 
-\terms{Theory}
-
-\keywords{ACM proceedings, \LaTeX, text tagging}
+\keywords{Continuous gesture recognition, AHMM, HOG}
 
 \section{Introduction}
+Gesture can be an important modality for a multimodal interaction system.
+With large number of joints, our hands are very expressive. We use our hands to
+manipulate objects and communicate ideas and sometimes even subconsciously. This
+also makes gesture recognition a hard problem because gestures are less
+structured compared to speech.
 
 \section{Related Work}
 Wobbrock et al. \cite{Wobbrock09} identified 6 \textit{forms} of gesture for surface
-interaction. We consolidate that for mid-air interaction. static pose, dynamic pose,
-static pose and path, dynamic pose and path, one-point touch, one-point path.
+interaction: static pose, dynamic pose,
+static pose and path, dynamic pose and path, one-point touch, and one-point
+path. One-point touch and one-point path are just special cases for static pose
+and static pose and path respectively and are most relevant for surface
+interaction. We consolidate that for mid-air interaction
+(Table~\ref{tab:gesture-form}).
 Among them, the dynamic pose and path gestures are the most complicated ones. 
 
 \begin{table}
 \centering
-\caption{Frequency of Special Characters}
+\caption{Gesture form taxonomy}
 \begin{tabular}{|l|l|} \hline
-Gesture Form&Explanation\\ \hline
+\textbf{Gesture Form}&\textbf{Explanation}\\ \hline
 static pose & Hand pose is held in one location. \\ \hline
 dynamic pose & Hand pose changes in one location. \\ \hline
 static pose and path & Hand pose is held as hand moves. \\ \hline
 dynamic pose and path & Hand pose changes as hand moves. \\
 \hline\end{tabular}
+\label{tab:gesture-form}
 \end{table}
 
-HOG features are used in object recognition with great success. It is often used
-with a linear SVM classifier.
+HOG (histograms of oriented gradients) feature \cite{dalal05} is used widely
+in object recognition with great success. It is often used with a linear SVM
+classifier. It was originally used in pedestrian recognition and is also used in 
+gesture recognition \cite{song12}. In particular, Song et al. used a SVM
+classifier with HOG feature derived from the hand image to classify different
+static hand poses in their gesture set and use the probability output . Their
+data set contains gestures with static hand pose and path but not dynamic hand pose and path. While it is easier
+to identify classes of static hand poses with ground truth labels and train a
+classifier using supervised learning, it is harder to do so with dynamic hand
+poses as hand poses change continuously. In this paper, we explore unsupervised
+clustering method with different hand pose features for our 
 
-You can use whatever symbols, accented characters, or
-non-English characters you need anywhere in your document;
-you can find a complete list of what is
-available in the \textit{\LaTeX\
-User's Guide}\cite{Lamport:LaTeX}.
-
-\subsection{Math Equations}
-You may want to display math equations in three distinct styles:
-inline, numbered or non-numbered display.  Each of
-the three are discussed in the next sections.
-
-\subsubsection{Inline (In-text) Equations}
-A formula that appears in the running text is called an
-inline or in-text formula.  It is produced by the
-\textbf{math} environment, which can be
-invoked with the usual \texttt{{\char'134}begin. . .{\char'134}end}
-construction or with the short form \texttt{\$. . .\$}. You
-can use any of the symbols and structures,
-from $\alpha$ to $\omega$, available in
-\LaTeX\cite{Lamport:LaTeX}; this section will simply show a
-few examples of in-text equations in context. Notice how
-this equation: \begin{math}\lim_{n\rightarrow \infty}x=0\end{math},
-set here in in-line math style, looks slightly different when
-set in display style.  (See next section).
-
-\subsubsection{Display Equations}
-A numbered display equation -- one set off by vertical space
-from the text and centered horizontally -- is produced
-by the \textbf{equation} environment. An unnumbered display
-equation is produced by the \textbf{displaymath} environment.
-
-Again, in either environment, you can use any of the symbols
-and structures available in \LaTeX; this section will just
-give a couple of examples of display equations in context.
-First, consider the equation, shown as an inline equation above:
-\begin{equation}\lim_{n\rightarrow \infty}x=0\end{equation}
-Notice how it is formatted somewhat differently in
-the \textbf{displaymath}
-environment.  Now, we'll enter an unnumbered equation:
-
-and follow it with another numbered equation:
-\begin{equation}\sum_{i=0}^{\infty}x_i=\int_{0}^{\pi+2} f\end{equation}
-just to demonstrate \LaTeX's able handling of numbering.
-
-\subsection{Citations}
-Citations to articles \cite{bowman:reasoning,
-clark:pct, braams:babel, herlihy:methodology},
-conference proceedings \cite{clark:pct} or
-books \cite{salas:calculus, Lamport:LaTeX} listed
-in the Bibliography section of your
-article will occur throughout the text of your article.
-You should use BibTeX to automatically produce this bibliography;
-you simply need to insert one of several citation commands with
-a key of the item cited in the proper location in
-the \texttt{.tex} file \cite{Lamport:LaTeX}.
-The key is a short reference you invent to uniquely
-identify each work; in this sample document, the key is
-the first author's surname and a
-word from the title.  This identifying key is included
-with each item in the \texttt{.bib} file for your article.
-
-The details of the construction of the \texttt{.bib} file
-are beyond the scope of this sample document, but more
-information can be found in the \textit{Author's Guide},
-and exhaustive details in the \textit{\LaTeX\ User's
-Guide}\cite{Lamport:LaTeX}.
-
-This article shows only the plainest form
-of the citation command, using \texttt{{\char'134}cite}.
-This is what is stipulated in the SIGS style specifications.
-No other citation format is endorsed or supported.
-
-\subsection{Tables}
-Because tables cannot be split across pages, the best
-placement for them is typically the top of the page
-nearest their initial cite.  To
-ensure this proper ``floating'' placement of tables, use the
-environment \textbf{table} to enclose the table's contents and
-the table caption.  The contents of the table itself must go
-in the \textbf{tabular} environment, to
-be aligned properly in rows and columns, with the desired
-horizontal and vertical rules.  Again, detailed instructions
-on \textbf{tabular} material
-is found in the \textit{\LaTeX\ User's Guide}.
-
-Immediately following this sentence is the point at which
-Table 1 is included in the input file; compare the
-placement of the table here with the table in the printed
-dvi output of this document.
-
-To set a wider table, which takes up the whole width of
-the page's live area, use the environment
-\textbf{table*} to enclose the table's contents and
-the table caption.  As with a single-column table, this wide
-table will ``float" to a location deemed more desirable.
-Immediately following this sentence is the point at which
-Table 2 is included in the input file; again, it is
-instructive to compare the placement of the
-table here with the table in the printed dvi
-output of this document.
-
-
-\begin{table*}
-\centering
-\caption{Some Typical Commands}
-\begin{tabular}{|c|c|l|} \hline
-Command&A Number&Comments\\ \hline
-\texttt{{\char'134}alignauthor} & 100& Author alignment\\ \hline
-\texttt{{\char'134}numberofauthors}& 200& Author enumeration\\ \hline
-\texttt{{\char'134}table}& 300 & For tables\\ \hline
-\texttt{{\char'134}table*}& 400& For wider tables\\ \hline\end{tabular}
-\end{table*}
-% end the environment with {table*}, NOTE not {table}!
-
-\begin{figure}
-\centering
-\epsfig{file=fly.eps}
-\caption{A sample black and white graphic (.eps format).}
-\end{figure}
-
-\begin{figure}
-\centering
-\epsfig{file=fly.eps, height=1in, width=1in}
-\caption{A sample black and white graphic (.eps format)
-that has been resized with the \texttt{epsfig} command.}
-\end{figure}
-
-\begin{figure}
-\centering
-\psfig{file=rosette.ps, height=1in, width=1in,}
-\caption{A sample black and white graphic (.ps format) that has
-been resized with the \texttt{psfig} command.}
-\vskip -6pt
-\end{figure}
-
-\subsection{Theorem-like Constructs}
-Other common constructs that may occur in your article are
-the forms for logical constructs like theorems, axioms,
-corollaries and proofs.  There are
-two forms, one produced by the
-command \texttt{{\char'134}newtheorem} and the
-other by the command \texttt{{\char'134}newdef}; perhaps
-the clearest and easiest way to distinguish them is
-to compare the two in the output of this sample document:
-
-This uses the \textbf{theorem} environment, created by
-the\linebreak\texttt{{\char'134}newtheorem} command:
-\newtheorem{theorem}{Theorem}
-\begin{theorem}
-Let $f$ be continuous on $[a,b]$.  If $G$ is
-an antiderivative for $f$ on $[a,b]$, then
-\begin{displaymath}\int^b_af(t)dt = G(b) - G(a).\end{displaymath}
-\end{theorem}
-
-The other uses the \textbf{definition} environment, created
-by the \texttt{{\char'134}newdef} command:
-\newdef{definition}{Definition}
-\begin{definition}
-If $z$ is irrational, then by $e^z$ we mean the
-unique number which has
-logarithm $z$: \begin{displaymath}{\log e^z = z}\end{displaymath}
-\end{definition}
-
-Two lists of constructs that use one of these
-forms is given in the
-\textit{Author's  Guidelines}.
 
 \section{Recognition of Continuous Gesture with Dynamic Hand Poses}
-Abstract Hidden Markov Model based recognition engine.
+We use Abstract Hidden Markov Model (AHMM) to model gesture production, and
+develop a learning and predication framework based on this model.
 
 \subsection{Hand Tracking Using a RGB-D Camera}
 The RGB-D(epth) camera such as the Kinect is a relatively cheap sensor for 
@@ -365,15 +190,25 @@ to extract hand pose features for our recognition engine. As a first step, we
 consider gestures using left hand only.
 
 We use the Microsoft Kinect SDK for user detection and skeleton tracking. The
-skeleton tracking is based on depth information and tracks \# body joints
+skeleton tracking is based on depth information and tracks 20 body joints
 including the both hand joints.
 We notice that while the skeleton tracking works well for articulated body poses,
 it fails to track hand joints correctly when the hands are close to and in
-front of the body or the hand movement is fast.
+front of the body or the hand movement is fast (see Figure~\ref{fig:skin} for
+some examples of such failure).
 
 \begin{figure*}
 \centering
-\epsfig{file=flies.eps}
+\begin{subfigure}{0.485\textwidth}
+  \centering
+  \includegraphics[height=0.35\columnwidth]{fig/rest.ps}
+  \caption{Rest position}
+\end{subfigure}
+\begin{subfigure}{0.485\textwidth}
+  \centering
+  \includegraphics[height=0.35\columnwidth]{fig/shakehand.ps}
+  \caption{Shake hand}
+\end{subfigure}
 \caption{Examples when skeleton tracking fails.}
 \label{fig:skin}
 \end{figure*}
@@ -386,11 +221,112 @@ intersection between the skin mask and the user mask. Then we find the contours
 with perimeter that is greater than the minimum possible hand shape. This
 results in contours for the head and two hands and possible other contours due
 to wrong skin region close to the body. To find the most probable contour for
-the left hand, we consider the Euclidean distance between each contour's cetner
-rank the contours with a cost metric
+the left hand, we consider the Euclidean distances from the center of each
+contour, $\bf{c}_i$, to the left hand joint position from skeleton
+tracking, , $\bf{h}_S$, and the previous left hand position, $\bf{h}_P$. We rank
+the contours with a cost metric
 \begin{displaymath}
-\text{Cost}(c_i) = ||c_i.center - s.center|| + ||c_i.center - 
+\text{Cost}(\bf{c}_i) = w_1 \cdot ||\bf{c}_i - \bf{h}_S|| + w_2 \cdot ||\bf{c}_i
+- \bf{h}_P||
 \end{displaymath}
+All positions are in the depth image coordinates. The final left hand contour is
+the one with the lowest cost.
+The two weights $w_1$ and $w_2$ control the relative importance of the two distances. The
+skeleton tracking also returns the the confidence of the tracking results in two
+levels: \textit{tracked} (high confidence) and \textit{inferred} (low
+confidence). While keeping $w_2 = 1$, we adjust $w_1$ according to the skeleton
+tracking confidence
+\begin{displaymath}
+w_1 = 
+\begin{cases}
+  1, & \text{if } \bf{h}_S \text{ is tracked} \\
+  0.25, & \text{if } \bf{h}_S \text{ is inferred} 
+\end{cases}
+\end{displaymath}
+Starting from the bounding box of the most likely left hand
+contour, we use CamShift \cite{Bradski98} on the depth mapped image
+to locate the final bounding box of the hand. Figure~\ref{fig:skin} shows
+examples of final tracked left hand.
+
+\subsection{Continuous Gesture Recognition Framework}
+We use the 1-level abstract hidden Markov model (AHMM)
+proposed by Bui et al.~\cite{bui00} for continuous gesture recognition because
+it maps closely to the gesture production process. 
+
+\begin{figure}
+\centering
+\epsfig{file=fig/ahmm.eps}
+\caption{Dynamic Bayesian network representation of 1-level AHMM}
+\label{fig:ahmm}
+\end{figure}
+
+
+\subsubsection{The Model}
+The AHMM model is closely related to hierarchical hidden Markov models (HHMMs).
+HHMMs is an extension of the HMM that is designed to model domains with
+hierarchical structure and/or dependencies at multiple length/time
+scales~\cite{murphy02}. Each gesture can be modeled by an HMM with variable
+length as users make gestures with changing speed. A sequence of gestures can
+then be viewed as a hierarchy of HMMs. 
+
+Figure~\ref{fig:ahmm} shows the 1-level AHMM we use for gesture recognition 
+represented in a dynamic Bayesian network (DBN). Node
+$G_t$ represents the gesture that the
+gesturer is making at time $t$. It can include different gestures the system
+can recognize as well as rest poses and pre- and post-gesture strokes.
+Node $S_t$ is the hidden state of the hand movement, which is essentially a
+vector quantization of the actual, observed (but noisy) feature vector $X_t$. 
+Node $F_t^G$ is a binary variable that indicates the end of a
+gesture. It is ``on'' (has value 1) if the lower level HMM at time $t$ has just
+``finished'', otherwise it is ``off'' (value 0). Thus, the use of node $F_t^G$
+incorporates gesture segmentation into the probabilistic model seamlessly. We
+do not need a separate mechanism to do gesture segmentation and then use HMM for
+gesture recognition. It is also probabilistic and hence can be more robust.
+
+One difference between this 1-level AHMM and a general HHMM is that state $S$ never
+``resets'', since $F^G$ is not a parent. Here we assume that during a gesture sequence, even if the goal changes,
+the next state of the hand/arm movement always depends on the previous state. This is reasonable for gesture recognition because the hand/arm 
+movement is always continuous, unless the hands move out of the sensor's view during
+which the inference engine will reset. 
+
+\subsubsection{Hand Feature}
+We combine both hand motion features, $X^M_t$ and hand pose features, $X^P_t$
+for the observation node $X_t$, i.e., 
+\begin{displaymath}
+X_t = \left[X^M_t\right]
+\end{displaymath} 
+
+The motions features include the relative position of the center of
+the hand bounding box $\bf{p}$, velocity $\bf{v}$ and acceleration $\bf{a}$.
+All of them are 3-dimensional vectors in the world
+coordinate system.
+
+The hand pose features are computed from a $100 \times 100$ px image $I$ scaled
+from the bounding box of the final tracked left hand (Figure~\ref{}). Each pixel
+is a depth value scaled between $0$ and $255$. We explore several hand pose 
+features derived from the image.
+
+\begin{figure}
+
+\end{figure}
+
+\subsubsection{Eigenhand}
+This is similar to the eigenface~\cite{turk91} technique. We concatenate the
+rows of the hand image, $I$, into one one column vector and perform principle
+component analysis (PCA) on all the training images. The images
+reshaped from the eigenvectors are the eigenhands (Figure~\ref{}). We use
+the first $n$ eigenvectors, $u_1, \ldots, u_n$, corresponding to the 
+$n$ largest eigenvalues as our basis.
+Hence, the hand pose feature vector is a $n$-dimensional vector $[w_1,
+\ldots, w_n]$ where each component is the projection of the hand into each
+eigenvectors $u_1, \ldots, u_n$.
+
+\begin{figure}
+
+\end{figure}
+
+\subsubsection{HOG}
+
 
 \section{Experimental Evaluation}
 We evaluate our hand tracking and gesture recognition algorithm with part of the ChAirGest 
@@ -400,7 +336,8 @@ there are 600 gesture occurrences. For each user, we use 2 sessions of recording
 In each session there are one occurrence for each gesture/resting posture combination 
 resulting in 30 gesture occurrences. We use one session for training and one session for testing.
 
-30 fps (frame per second) and down sample to 10 fps to increase training speed.
+The RGB and depth videos are 30 fps (frame per second) and we down sample them
+to 10 fps to increase training speed.
 
 \section{Future Work}
 We note that our method of combining skin color detection, user detection and
@@ -415,12 +352,6 @@ features for the whole body.
 
 %ACKNOWLEDGMENTS are optional
 \section{Acknowledgments}
-This section is optional; it is a location for you
-to acknowledge grants, funding, editing assistance and
-what have you.  In the present case, for example, the
-authors would like to thank Gerald Murray of ACM for
-his help in codifying this \textit{Author's Guide}
-and the \textbf{.cls} and \textbf{.tex} files that it describes.
 
 %
 % The following two commands are all you need in the

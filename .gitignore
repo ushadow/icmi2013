@@ -6,4 +6,6 @@ pdf/*
 *.brf
 *.aux
 *.log
-
+*.dvi
+src/*.ps
+src/*.pdf
