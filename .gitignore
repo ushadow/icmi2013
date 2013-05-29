@@ -9,3 +9,6 @@ pdf/*
 *.dvi
 src/*.ps
 src/*.pdf
+src/*.bbl
+src/*.blg
+
