@@ -72,8 +72,7 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{ChAirGest 2013 - Temporal Segmentation Optimization for Continuous Gesture 
-Recognition}
+\title{ChAirGest 2013 - Continuous Gesture Spotting and Recognition}
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -132,7 +131,9 @@ Randall Davis \\
 
 \maketitle
 \begin{abstract}
-We propose a novel approach of accurately detecting the start of a gesture nucleus phase.
+We developed a gesture spotting method to accurately detect the start of gesture nucleus phases.
+A 3-fold cross validation based on the ChAirGest development data set gives an F1 score of 90\%
+and 
 \end{abstract}
 
 %A category including the fourth, optional field follows...
@@ -142,82 +143,74 @@ Presentation}[User Interfaces]
 \keywords{Continuous gesture recognition, temporal segmentation, HMM}
 
 \section{Introduction}
+The goal of ChAirGest 2013 challenge~\cite{Ruffieux2013} is to spot and recognize gestures independent of
+users. We present our approach to the challenge, highlighting two main contributions: 
+improved hand position detection and optimized temporal segmentation for gesture spotting
+and recognition.
 
-\section{System Overview}
-We use both Kinect and Xsens data to extract hand motion feature vector $X_t$ for gesture modeling. 
-It is relatively easy to obtain features from the Xsens data. We choose to use linear
-acceleration (x, y, z), angular velocity (x, y, z) and Euler orientation (yaw, pitch, roll)
-from the Xsens unit on the hand to form a 9-dimensional feature vector, $X_{\text{xsens}}$.
-
-\begin{figure*}
-\centering
-\includegraphics[width=1\linewidth]{fig/system.ps}
-\caption{System overview of our gesture recognition framework. }
-\label{fig:system}
-\end{figure*}
-
-Feature extraction on video sequences is often done in two steps: 1)
-detect points of interest by maximizing certain salience functions; 2) compute
-feature descriptors to capture shape and motion in the neighborhoods of the selected
-points~\cite{wang-spatio-2009}.
-
-For hand gesture recognition, the points of interest are certainly the hands. While the skeleton tracking provided
-by the Kinect SDK is quite robust most of the time, its error for hand joint tracking increases when
-the hands are close to the body or move quickly (see Figure~\ref{fig:compare-skeleton}). As a result, we
-developed a gesture salience detection method to locate the gesturing hand more accurately.
-
-The final stream of feature vectors are input to the HMM-based
-gesture recognition framework for classification. Figure~\ref{fig:system} shows the overview of the entire process.
+Our system mainly consists three parts: feature extraction, temporal segmentation, and gesture
+spotting and recognition. 
 The following sections give detailed explanation of our method.  
 
-\section{Gesture Salience Detection}
-Similar to Marcos-Ramiro et al.~\cite{marcos2013}, we define gesture salience as a function of 
-the closeness of the motion to the observer (e.g., the camera) and the magnitude of the motion,
-and compute it from both the RGB and the depth data. Both the RGB and the depth data can be noisy. RGB cameras are sensitive to lighting conditions.
-Skin color based detection can be sensitive to the clothes users wear. Depth cameras based on 
-structured light sensors, such as the first generation Kinect sensor, compare the projected infra-red pattern
-with the reflected one to determine depth~\cite{welsh:2011}. As a result, they do not work well on 
-objects that are highly reflective (mirrors and shiny metal) or highly absorptive (fluffy and/or dark materials such as human hair)
-\footnote{\url{http://msdn.microsoft.com/en-us/library/hh855356.aspx}}. By combining both RGB and
-depth information
-the overall gesture salience detection can be more robust.
+\section{Hand Feature Extraction}
+We use both the Kinect and the Xsens data to extract hand motion feature vectors for gesture modeling. 
+It is relatively easy to obtain features from the Xsens data. We choose to use linear
+acceleration (x, y, z), angular velocity (x, y, z) and Euler orientation (yaw, pitch, roll)
+from the Xsens unit on the hand to form a 9-dimensional feature vector $\underline{x}_t^{\text{xsens}}$
+for every time frame $t$.
+From the Kinect sensor, we extract the position of the gesturing hand in (x, y, z) relative to
+the shoulder center joint to
+form a 3-dimensional vector $\underline{x}_t^{\text{kinect}}$. Combining the two, we
+have a 12-dimensional feature vector as
+\begin{displaymath}
+\underline{x}_t = \left[ \begin{array}{c}
+\underline{x}^\text{kinect}_t\\
+\underline{x}^\text{xsens}_t
+\end{array}\right]
+\end{displaymath} 
 
+We do not use the Kinect skeleton tracking result for the hand location detection because
+it is not accurate when the hands are close to the body or when the hands are moving fast.
+We developed an improved method for hand detection based on gesture salience using both
+RGB and depth data.
+
+\subsection{Gesture Salience Detection}
+Similar to Marcos-Ramiro et al.~\cite{marcos2013}, we define gesture salience as a function of 
+the closeness of the motion to the observer (e.g., the camera) and the magnitude of the motion.
 The following are the detailed steps of our gesture salience detection method for each frame. 
 We show the illustrations in Figure~\ref{fig:gesture-salience}. 
 
-\subsection{Skin Segmentation}
-To make our method generalizable to any users and environment, we use an off-the-shelf simple skin color detection method which is not trained on our data set to do a binary segmentation. 
-. We compute a binary skin mask, $M^S$, based on the RGB image converted into YCrCb
+\subsubsection{Skin Segmentation}
+We use an off-the-shelf simple skin color detection method to compute a binary skin mask, $M^S$, based on the RGB image converted into YCrCb
 color space.  We also find the user mask, $M^U$ obtained from the Kinect SDK based on the depth image. 
-We then align $M^S$ with $M^U$ and find their intersection $M^{S\wedge U}$, which indicates the skin region on the user.
+We then align $M^S$ with $M^U$ to find their intersection $M^{S\wedge U}$, which indicates the skin region on the user.
 
-\subsection{Motion Detection}
+\subsubsection{Motion Detection}
 Similar to Cutler and Turk~\cite{cutler1998}, we compute the motion mask for the current depth frame based on 3 frames. We first filter each 
 depth frame by the user and skin mask $M^{S\wedge U}$ at time $t$, and then
 smooth it through a median filter to obtain $D_t$, which is basically a depth image containing user's skin region only (see Figure~\ref{fig:skin-mask}).
 Equation~(\ref{eq:motion-mask}) computes the binary mask, $M_{t\vee t-1}^M$, indicating pixels whose depth values have changed from time $t-1$ to $t$ (Figure~\ref{fig:motion-mask}).
-$D_{t\vee t-1}^{D}$ is the absolute difference between $D_t$ and $D_{t-1}$, and $T$ is the threshold operator that filters out small change in depth value 
+$D_{t\vee t-1}$ is the absolute difference between $D_t$ and $D_{t-1}$, and $T$ is the threshold operator that filters out small change in depth value 
 (we set the threshold to be 15mm). 
-To obtain the motion mask, $M_{t}^M$ for time $t$ only, we use $M_{t-1\vee t-2}^M$, the motion mask for $t-1$ and $t-2$ as well (see Equation~(\ref{eq:motion-mask-t-1})-(\ref{eq:motion-mask-t}),
+To obtain the motion mask, $M_{t}^M$ for time $t$ only, we use $M_{t-1\vee t-2}^M$, the motion mask for $t-1$ and $t-2$ as well (see Equation~(\ref{eq:motion-mask-t}),
  AND and XOR indicated by $\wedge$ and $\oplus$).
 \begin{align}
-M_{t\vee t-1}^M &= T(D_{t\vee t-1}^{D}) \label{eq:motion-mask} \\
-M_{t-1}^M &= M_{t\vee t-1}^M \wedge M_{t-1\vee t-2}^M \label{eq:motion-mask-t-1}\\
-M_{t}^M &= M_{t\vee t-1}^M \oplus M_{t-1}^M \label{eq:motion-mask-t}
+M_{t\vee t-1}^M &= T(D_{t\vee t-1}) \label{eq:motion-mask} \\
+M_{t}^M &= M_{t\vee t-1}^M \oplus (M_{t\vee t-1}^M \wedge M_{t-1\vee t-2}^M) \label{eq:motion-mask-t}
 \end{align}
 
-\subsection{Salience Map}
-We compute histograms of depth values in both $D_t$ and $D_{t\vee t-1}^{D}$ and then apply histogram normalization to obtain cumulative distributions $H_t$ and $H_{t\vee t-1}^D$.
-$H_t$ represents the probability of salience given a depth value, while $H_{t\vee t-1}^D$ represents the probability of salience given
+\subsubsection{Salience Map}
+We compute histograms of depth values in both $D_t$ and $D_{t\vee t-1}$ and then apply histogram normalization to obtain cumulative distributions $H_t$ and $H_{t\vee t-1}$.
+$H_t$ represents the probability of salience given a depth value, while $H_{t\vee t-1}$ represents the probability of salience given
 a depth difference value. The lower the depth value or the higher the depth difference value, the higher the salience probability. The reason for using
 histogram equalization is to reduce the effect of outliers such that a single large depth value will not suppress the salience probabilities of other depth values. 
 Finally the salience map (Figure~\ref{fig:salience}) can be computed for each pixel $(x, y)$ as
-\begin{align}
-S_t(x, y) = H_t(D_t(x, y)) \times H_{t\vee t-1}^D(D_t^D(x, y)) \times M_t^M
-\end{align}
+\begin{align*}
+S_t(x, y) = H_t(D_t(x, y)) \times H_{t\vee t-1}(D_{t\vee t-1}(x, y)) \times M_t^M
+\end{align*}
 The multiplication of the binary motion mask $M_t^M$ allows us to consider only the motion due to the user at $t$.
  
-\subsection{Salience Location}
+\subsubsection{Salience Location}
 The final step of locating the most salient region in a frame is finding the
 contour, $C_t$, from the salience map $S_t$ that has a perimeter greater than
 the smallest possible hand perimeter and with the highest average salience for all the pixels inside the contour.
@@ -231,23 +224,23 @@ the final bounding box, $B_t$, of gesture salience (Figure~\ref{fig:camshift}).
 \centering
 \hspace{-0.6em}%
 \subfigure[]{
-\includegraphics[width=0.19\linewidth]{figure/color.eps}\hspace{-0.6em}%
+\includegraphics[width=0.19\linewidth]{fig/color.eps}\hspace{-0.6em}%
 \label{fig:color}
 }
 \subfigure[]{
-\includegraphics[width=0.19\linewidth]{figure/depth.eps}\hspace{-0.6em}
+\includegraphics[width=0.19\linewidth]{fig/depth.eps}\hspace{-0.6em}
 \label{fig:skin-mask}
 }
 \subfigure[]{
-\includegraphics[width=0.19\linewidth]{figure/motion-mask1.eps}\hspace{-0.6em}
+\includegraphics[width=0.19\linewidth]{fig/motion-mask1.eps}\hspace{-0.6em}
 \label{fig:motion-mask}
 }
 \subfigure[]{
-\includegraphics[width=0.19\linewidth]{figure/salient-map.eps}\hspace{-0.6em}
+\includegraphics[width=0.19\linewidth]{fig/salient-map.eps}\hspace{-0.6em}
 \label{fig:salience}
 }
 \subfigure[]{
-\includegraphics[width=0.19\linewidth]{figure/bounding-box.eps}
+\includegraphics[width=0.19\linewidth]{fig/bounding-box.eps}
 \label{fig:camshift}
 }
 \caption{Gesture salience detection steps: \subref{fig:color} RGB image under low lighting condition;
@@ -281,51 +274,35 @@ region using our method. (Best viewed in color.)}
 \label{fig:compare-skeleton}
 \end{figure*}
 
-\subsection{Hand Feature}
-We combine the relative hand positions from the gesture salience detection and the other hand 
-motion features from the Xsens to form the final feature vector. both hand motion features, $X^M_t$ and hand pose features, $X^P_t$
-for the observed feature vector $X_t$, i.e., 
-\begin{displaymath}
-X_t = \left[ \begin{array}{c}
-X^M_t\\
-X^P_t
-\end{array}\right]
-\end{displaymath} 
-
-The motion features include the relative position ($\bf{p}$), velocity ($\bf{v}$),
-and acceleration ($\bf{a}$) of the center of
-the hand bounding box.
-All of them are 3-dimensional vectors in the world
-coordinate system, hence $X_t^M\in\mathbb{R}^9$. 
-
-The hand pose features are computed from a $100 \times 100$ px image $I_{h}$ scaled
-from the bounding box of the final tracked hand (Figure~\ref{fig:depth}). Each pixel
-is a depth value scaled between $0$ and $255$. We explore several hand pose 
-features derived from $I_h$.
-
-\section{Temporal Segmentation of Continuous Gestures}\label{sec:recognition}
-\subsection{Rest Position Modeling}
+\section{Temporal Segmentation}\label{sec:recognition}
 We use all the training data from all users to create a Gaussian model for the rest 
 positions and a Gaussian model for non-rest positions.
 
-During recognition, an observation $X_t$ at time frame $t$ is first classified into 
+During recognition, an observation $\underline{x}_t$ is first classified into 
 rest or non-rest position. It is non-rest position if 
 \begin{displaymath}
 N(X_t; \mu_{\text{NON-REST}}, \Sigma_{\text{NON-REST}}) \geq N(X_t; \mu_{\text{REST}}, \Sigma_{\text{REST}})
 \end{displaymath}
 Where $N$ represents the Gaussian probability. Sequences of continuous observations from non-rest
-positions longer than 0.25s are further classified into different gestures based on the trained HMM model.
+positions longer than 0.25s are further classified into different gestures based on the trained Hidden Markov models (HMMs).
  
-\subsection{Temporal Gesture Modeling and Training}
+\section{Gesture Spotting and Recognition}
+\subsection{Gesture Modeling and Training}
 Previous research suggests that
-a gesture consists three phases: pre-stroke (also called preparation), nucleus, and post-stroke 
-(also called retraction)~\cite{Pavlovic97}. The preparation phase consists
-of a preparatory movement that sets the hand in motion from some resting position.
+a gesture consists three phases: pre-stroke, nucleus, and post-stroke~\cite{Pavlovic97}. The pre-stroke phase consists
+ a preparatory movement that sets the hand in motion from some resting position.
 The nucleus of a gesture has some ``definite form and enhanced dynamic qualities''
 ~\cite{kendon86}. Finally, the hand either returns to the resting position or repositions
-for the new gesture phase. Each gesture has a unique nucleus phase, but gestures can
-share similar preparation and retract phases~\cite{krahnstoever2002}. Each gesture
-phase includes a sequence of hand/arm movement which can be modeled using HMMs. 
+for the new gesture phase. Each gesture
+phase includes a sequence of hand/arm movement which can be modeled using HMMs (see Figure~\ref{fig:hmm}). 
+
+\begin{figure}[tb]
+\centering
+\includegraphics[trim={3cm 3cm 3cm 0.5cm}, clip, width=1\columnwidth]{fig/hmm.ps}
+\caption{Temporal gesture model with different phases. Each phase can be modeled as an HMM. Double circles
+represents an end state.}
+\label{fig:hmm}
+\end{figure}
 
 Because we have the ground truth labeling of the pre-stroke, nucleus and post-stroke phases, 
 we can train an HMM for each phase for each gesture. 
@@ -359,10 +336,10 @@ expected sufficient statistics by adding a dummy END state to the end of each se
 Because there are 3 rest positions, we use 3 hidden states for both the pre-stroke and post-stroke phases.
 Each hidden state can be the start state and can only remain in its own state or go to the end state.
  
-For the nucleus phase, we use a modified Bakis~\cite{} model to constrain the transition probabilities
+For the nucleus phase, we use 6 hidden states for all the gestures and use a modified Bakis~\cite{} model to constrain the transition probabilities
 among the hidden states. Instead of only allowing left-right transition, we allow the last hidden state
 to go back to the initial state. This is particularly important for modeling gestures with arbitrary number of
-repetitions such as waving and shaking hands. 
+repetitions such as waving and shaking hands. Figure~\ref{fig:bakis} shows an example of the state transition diagram with 4 hidden states.
 
 \tikzstyle{vertex}=[circle, draw, minimum size=16pt, inner sep=0pt]
 \tikzstyle{observed-vertex}=[circle, draw, minimum size=16pt, inner
@@ -413,73 +390,98 @@ t^c(s'_{\text{nucleus}} | s_{\text{nucleus}}) = t(s'_{\text{nucleus}} | s_{\text
 
 We also add a rest state to the end of the HMM and allow the rest state to transit to pre-stroke
 and post-stroke phase with uniform probabilities to accommodate short pauses during the gesture.
+As a result, the final HMM for each gesture has 13 hidden states.
 Let $\underline{\theta}_g$ be the final concatenated HMM for gesture $g$. The classification
 for an observation sequence from non-rest positions is:
 \begin{displaymath}
 \hat{g} = \arg\max_g\log p(\underline{X}_1^T; \underline{\theta}_g)
 \end{displaymath}
 
-\subsection{Identify the Start of Nucleus Phase}
+\subsection{Gesture Spotting}
 Because the non-rest positions include both pre-stroke and post-stroke phases, we need
-to identify the start of the actual gesture (nucleus). We use the Viterbi algorithm
+to detect the start of the actual gesture (nucleus). We use the Viterbi algorithm
 to find the most probable hidden state sequence $\hat{s}_1\ldots\hat{s}_T$ for a given observed sequence using 
 the mostly likely gesture model $\underline{\theta}_{\hat{g}}$. The start and end time for the gesture nucleus is
 the first and the last time frames $t$ where $\hat{s}_t\in s_{\text{nucleus}}$. Note that
 we are able to identify whether a hidden state belongs to the nucleus phase because we trained the three phases
 separately.
 
+If a non-rest sequence does not contain hidden states belonging to the nucleus phase, it is ignored (See Fig.In
+this way, we can spot the actual gestures while filtering out other movements.
+
+\begin{figure}[tb]
+\centering
+\includegraphics[trim={3cm 3cm 3cm 0.5cm}, clip, width=1\columnwidth]{fig/01-3-3.eps}
+\caption{}
+\label{fig:decoding}
+\end{figure}
+
+Figure~\ref{fig:decoding} shows a visualization of the recognition result of one batch sequence. The first
+row is the ground truth with different colors indicating different gesture phases or the rest position.
+The pre-stroke and post-stroke phases are indicated by two orange colors (see the color bar
+on the right). The second row is our segmentation and recognition result.
+The third row is the color coded most probable hidden states. The colors for the hidden states are not related 
+to the color bar on the right.
+
 \section{Experimental Evaluation}\label{sec:eval}
-We present our evaluation result based on the development data set of the ChAirGest corpus~\cite{Ruffieux2013}.
-
-\subsection{Method}
-For each participant, we use
-one tenth of the sequences for testing and the remaining for training. The RGB and depth videos are 30 fps (frame per second) and we down-sample them
-to 10 fps to increase the training speed. This results in about 600 frames per sequence on average.
-
-\subsection{Hand Pose Feature Comparison}
-Table~\ref{tab:comp-feature} shows the comparison of the recognition performance with different hand pose features $X_t^P$. The 
-hand motion feature $X_t^M$ is kept the same. All results are based on fixed-interval smoothing inference.
-Note that $n$ is the number of PCA components mentioned in Section~\ref{sec:eigenhand} and $sBin$ is the
-cell size and $oBin$ is the number of orientation bins mentioned in Section~\ref{sec:hog}.
+We present our evaluation result based on the development data set. 
+Table~\ref{tab:comp-feature} shows the average result of 3-fold cross validation where, in each fold,
+the model is trained on 2 sessions from every user and tested on 1 session from every user. We compare
+the results based on two different feature vectors: using both Kinect and Xsens features versus using
+only Xsens features. Including the relative hand position computed from 
+the Kinect data in the feature vector improves the F1 score by 1.3\%.  
 
 \begin{table}[tb]
 \begin{center}
-\caption{Per frame gesture classification accuracy and F1 scores in \% for different
-hand pose features on the test data set. The results are the average from all test
-sequences from 4 participants. Numbers in parentheses are standard deviations.}
-\label{tab:comp-feature}
-\begin{tabular}{|l|c|c|}
+\begin{tabular}{|l|l|l|}
 \hline
-\textbf{Hand pose feature} & \textbf{Accuracy} & \textbf{F1} \\
+ & \textbf{Kinect \& Xsens} & \textbf{Xsens Only} \\
 \hline
-Eigenhand (d = 7) & 83.3 (4) & 74.8 (8) \\ 
+F1 Score & 0.900 & 0.887 \\
 \hline
-HOG (sBin = 4, oBin = 9, d = 7) & 84.0 (3) & 79.7 (8)\\
+ATSR Score & 0.923 & 0.917 \\
 \hline
-HOG (sBin = 8, oBin = 9, d = 7) & 84.0 (3) & 74.6 (2)\\
-\hline
-HOG (sBin = 30, oBin = 12, d = 7) & 70.9 (6) & 70.9 (9)\\
+Final Score & 0.9012 & 0.8932 \\
 \hline
 \end{tabular}
+\caption{Comparison of average 3-fold cross validation results for two feature vectors:
+using both Kinect and Xsens features versus using only Xsens featurs. }
+\label{tab:comp-feature}
 \end{center}
 \end{table}
 
-\subsection{Gesture classification confusion matrix}
-Using fixed-interval smoothing inference and the same hand pose feature in the previous
-section, we compute the frame-based confusion matrix
-between the ground truth gesture labels and the predicted ones. Figure~\ref{fig:confusion-matrix} shows that most gesture phase classification errors
-occur between the preparation (\#11) phase / the retraction (\#12) phase and the other gesture nucleus phases. We
-observe that the transitions between these phases are usually
-not very clear even to the human eyes, and hence accurate detection of the boundaries between these
-phases can be hard. For many applications, the accurate detection of the boundaries may not be
-necessary either.
+\begin{table}[tb]
+\begin{center}
+\begin{tabular}{|l|l|l|l|l|l|}
+\hline
+Hit & 843 & Missed & 49 & Mislabel & 7 \\
+\hline
+Precision & 0.94 & Recall & 0.94 & F1 & 0.90\\
+\hline
+Start error & 0.3\% & Stop error & -2.33\% & ATSR & 0.92  \\
+\hline
+& & & & Final Score & 0.9357  \\
+\hline
+\end{tabular}
+\caption{Result for model trained on all development data and tested on all development 
+data using both Kinect and Xsens features.}
+\label{tab:dev-score}
+\end{center}
+\end{table}
 
-We also note that this data set has a few gestures that are particularly hard to recognize.
-For example the ``Palm-up rotation'' gesture (\#10) is similar to the ``Swipe right'' gesture (\#3) as they 
-have the same motion trajectory. The difference is that the hand rotates in the ``Palm-up rotation'' gesture whereas the 
-hand stays the same in the ``Swipe right'' gesture. However, some participants rotate their hands when doing
-the ``Swipe right'' gesture as well (see Figure~\ref{fig:swipe-right}).
+Table~\ref{tab:dev-score} shows the detailed result based on the model trained and tested
+ on all the development data using both Kinect and Xsens features.
 
+\begin{figure}[tb]
+\centering
+\includegraphics[trim={6cm 3.5cm 10cm 1.5cm}, clip, width=1\columnwidth]{fig/confusion-matrix.eps}
+\caption{Confusion matrix based on result from 3-fold cross validation using both Kinect and Xsens
+features. The numbers are percentages. The darker the color the higher the percentage.}
+\label{fig:confusion}
+\end{figure}
+
+The confusion matrix (Figure~\ref{fig:confusion}) shows that the most easily confused gestures
+are ``take from screen'' and ``push to screen''.
 \section{Conclusions}
  
 %\end{document}  % This is where a 'short' article might terminate
