@@ -132,7 +132,8 @@ Randall Davis \\
 
 \maketitle
 \begin{abstract}
-We developed a gesture spotting method based on hidden Markov models (HMMs) to accurately detect the start of gesture nucleus phases.
+We developed a gesture salience based hand tracking method and a gesture spotting method based on
+concatenated hidden Markov models.
 A 3-fold cross validation using the ChAirGest development data set gives an F1 score of 0.900
 and an accurate temporal segmentation rate (ATSR) of 0.923. The average final score is 0.901.
 \end{abstract}
@@ -154,7 +155,7 @@ In common with~\cite{Starner95, yin10}, we use hidden Markov models (HMMs) to mo
 but we train models separately for the pre-stroke, nucleus and post-stroke phases, concatenate them together and use Viterbi decoding to optimally segment the
 gesture sequences. 
 
-Int the following sections, we explain our system in three main parts: feature extraction, temporal segmentation, and gesture
+In the following sections, we explain our system in three main parts: feature extraction, temporal segmentation, and gesture
 spotting and recognition.  
 
 \section{Hand Feature Extraction}
@@ -299,7 +300,8 @@ phase includes a sequence of hand/arm movement that can be modeled using HMMs (s
 \begin{figure}[tb]
 \centering
 \includegraphics[clip, width=1\columnwidth]{fig/hmm.ps}
-\caption{Temporal gesture model with different phases. Each phase can be modeled as an HMM. Double circles
+\caption{Temporal gesture model with different phases. Each phase can be modeled as an HMM. Dashed arrows represent
+initial state transitions and double circles
 represent end states.}
 \label{fig:hmm}
 \end{figure}
@@ -406,12 +408,12 @@ separately.
 
 \begin{figure}[tb]
 \centering
-\includegraphics[trim={3.5cm 1.5cm 0cm 0.6cm}, clip, width=1\columnwidth]{fig/01-3-3.ps}
-\caption{Visualization of a gesture recognition result sequence. 
+\includegraphics[trim={3.5cm 1.4cm 0cm 0.6cm}, clip, width=1\columnwidth]{fig/01-3-3.ps}
+\caption{Visualization of a gesture recognition sequence. 
 The pre-stroke and post-stroke phases are indicated by two orange colors (see the color bar). 
 The colors for the hidden states (3rd row) are not related 
-to the gestures. Instead the first 3 blues in the color bar are for the pre-stroke phase hidden states, the next 6 colors are for the nucleus
-phase, the next 3 are for the post-stroke phase, and the last is for the rest state.}
+to the gestures. Instead the first 3 blues in the color bar are for the pre-stroke hidden states, the next 6 colors are for the nucleus, 
+the next 3 are for the post-stroke, and the last is for the rest state.}
 \label{fig:decoding}
 \end{figure}
 
@@ -421,7 +423,6 @@ The second row is our segmentation and recognition result.
 The third row is the color-coded most probable hidden states. If a non-rest sequence does not contain hidden states belonging to the nucleus phase, 
 it is ignored (see the blue bar at $t\sim 30700$ in Figure~\ref{fig:decoding}). In
 this way, we can spot the actual gestures while filtering out other movements.
-
 \pagebreak
 \section{Experimental Evaluation}\label{sec:eval}
 We evaluate our method based on the development data set, and down sample the frame rate
@@ -487,7 +488,7 @@ Using both the Kinect and the Xsens features, we also trained a model using all 
 \section{Conclusions}
 Our gesture spotting method based on concatenated HMMs trained for the three gesture phases
 and Viterbi decoding gives a good result on the development data set. Using hand position features computed from
-Kinect data also helps increase the gesture recognition accuracy. 
+Kinect data also helps to increase the gesture recognition accuracy. 
  
 %\end{document}  % This is where a 'short' article might terminate
 
