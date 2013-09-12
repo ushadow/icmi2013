@@ -116,26 +116,26 @@
 %
 % 1st. author
 \alignauthor
-Ying Yin\\
-       \affaddr{Massachusetts Institute of Technology}\\
-       \affaddr{}\\
-       \affaddr{}\\
-       \email{yingyin@csail.mit.edu}
-% 2nd. author
-\alignauthor
-Randall Davis \\
-       \affaddr{Massachusetts Institute of Technology}\\
-       \affaddr{}\\
-       \affaddr{}\\
-       \email{davis@csail.mit.edu}
+% Ying Yin\\
+%        \affaddr{Massachusetts Institute of Technology}\\
+%        \affaddr{}\\
+%        \affaddr{}\\
+%        \email{yingyin@csail.mit.edu}
+% % 2nd. author
+% \alignauthor
+% Randall Davis \\
+%        \affaddr{Massachusetts Institute of Technology}\\
+%        \affaddr{}\\
+%        \affaddr{}\\
+%        \email{davis@csail.mit.edu}
 }
 
 \maketitle
 \begin{abstract}
 We developed a gesture salience based hand tracking method and a gesture spotting method based on
 concatenated hidden Markov models.
-A 3-fold cross validation using the ChAirGest development data set gives an F1 score of 0.900
-and an accurate temporal segmentation rate (ATSR) of 0.923. The average final score is 0.901.
+A 3-fold cross validation using the ChAirGest development data set with 10 users gives an F1 score of 0.907
+and an accurate temporal segmentation rate (ATSR) of 0.923. The average final score is 0.9116.
 \end{abstract}
 
 %A category including the fourth, optional field follows...
@@ -253,8 +253,10 @@ When motion is slow, the motion mask usually indicates the edge of the moving
 object. As a result, the center of $C_t$ may not be the center of the moving
 object (in our case, the user's hand). Hence, we use 2 iterations of Camshift~\cite{Bradski98} on 
 the depth image $D_t$ with a starting search location at the center of $C_t$ to refine
-the final bounding box, $B_t$, of gesture salience (Figure~\ref{fig:camshift}). Figure~\ref{fig:compare-skeleton} compares the hand detection result using our method with that using the skeleton tracking result
-from the Kinect SDK.
+the final bounding box, $B_t$, of gesture salience (Figure~\ref{fig:camshift}). 
+Figure~\ref{fig:compare-skeleton} shows examples of our hand tracking result (red regions). 
+It is more reliable than the hand joint locations from the Kinect SDK.
+
 \begin{figure*}
 \centering
 \subfigure[]{
@@ -269,9 +271,7 @@ from the Kinect SDK.
 \subfigure[]{
 \includegraphics[width=0.23\linewidth]{fig/near-body-depth.eps}
 \hspace{-0.6em} }
-\caption{Comparison of hand detection using our gesture salience method versus using the skeleton tracking from the Kinect SDK. The green lines are
-the skeleton tracking results. The red region is the salient gesture
-region using our method. (Best viewed in color.)}
+\caption{Comparison of hand tracking results. Our method (red region) gives more reliable result on hand tracking compared to the off-the-shelf Kinect software (green line). (Best viewed in color.)}
 \label{fig:compare-skeleton}
 \end{figure*}
 
@@ -318,7 +318,8 @@ p(\underline{X}_1^T, S_1^T;\underline{\theta}) =
 \end{displaymath}
 where $\underline{\theta}$ represents the model parameter vector which includes
 the initial state probabilities $t(s)$, the state transition probabilities $t(s'|s)$, and the 
-emission probabilities $e(\underline{x}|s)$ for $s, s'\in \{1, 2,\ldots k\}$. We use a mixture of 3 Gaussians for the emission probability to model user variations.
+emission probabilities $e(\underline{x}|s)$ for $s, s'\in \{1, 2,\ldots k\}$. 
+We use a mixture of 6 Gaussians for the emission probability to model user variations.
 
 Given $N$ training sequences, we use the expectation maximization (EM) algorithm to estimate the model parameters. In
 particular, the update for the termination probability during the $i$th iteration is 
@@ -333,7 +334,7 @@ expected sufficient statistics by adding a dummy END state to the end of each se
 Because there are 3 rest positions, we use 3 hidden states for both the pre-stroke and post-stroke phases.
 Each hidden state can be the start state and can only remain in its own state or go to the end state.
  
-For the nucleus phase, we use 6 hidden states for all the gestures and use a modified Bakis~\cite{bauer2000} model to constrain the transition probabilities
+For the nucleus phase, we use 6 hidden states (chosen through cross validation) for all the gestures and use a modified Bakis~\cite{bauer2000} model to constrain the transition probabilities
 among the hidden states. Instead of allowing only left-right transition, we allow the last hidden state
 to go back to the initial state (Figure~\ref{fig:bakis}). This is particularly important for modeling gestures with arbitrary number of
 repetitions such as waving and shaking hands. 
@@ -421,22 +422,22 @@ Figure~\ref{fig:decoding} shows a recognition result visualization for one batch
 row is the ground truth with different colors indicating different gesture phases or the rest position. 
 The second row is our segmentation and recognition result.
 The third row is the color-coded most probable hidden states. If a non-rest sequence does not contain hidden states belonging to the nucleus phase, 
-it is ignored (see the blue bar at $t\sim 30700$ in Figure~\ref{fig:decoding}). In
+it is ignored (see the blue bar in the third row at $t\sim 30700$ in Figure~\ref{fig:decoding}). In
 this way, we can spot the actual gestures while filtering out other movements.
 \pagebreak
 \section{Experimental Evaluation}\label{sec:eval}
-We evaluate our method based on the development data set, and down sample the frame rate
-to 12.5Hz.
+We evaluate our method based on the development data set with 10 users and 900 total gesture occurrences.
 Table~\ref{tab:comp-feature} shows the average result of a 3-fold cross validation where, in each fold,
 the model is trained on 2 sessions and tested on 1 session from every user. We compare
 the result based on two different feature vectors: using both Kinect and Xsens features versus using
 only Xsens features. The result shows that including the relative hand position computed from 
-the Kinect data improves the F1 score by 1.3\%. 
+the Kinect data improves the F1 score by 1.7\%. 
 
-The confusion matrix (Figure~\ref{fig:confusion}) shows that the most easily confused gestures
+The per frame classification confusion matrix (Figure~\ref{fig:confusion}) shows that the most easily confused gestures
 are ``take from screen'' and ``push to screen''. These two gestures are very similar except for hand
 poses. This suggest that by including hand pose features may further improve
-the recognition accuracy.
+the recognition accuracy. There are also more confusions at the boundary between phases, e.g., 
+from rest to pre-stroke and from post-stroke to rest.
 
 \begin{table}[tb]
 \begin{center}
@@ -444,11 +445,11 @@ the recognition accuracy.
 \hline
  & Kinect \& Xsens & Xsens Only \\
 \hline
-F1 Score & \textbf{0.900} & 0.887 \\
+F1 Score & \textbf{0.907} & 0.890 \\
 \hline
-ATSR Score & \textbf{0.923} & 0.917 \\
+ATSR Score & \textbf{0.923} & 0.920 \\
 \hline
-Final Score & \textbf{0.9012} & 0.8932 \\
+Final Score & \textbf{0.9116} & 0.8953 \\
 \hline
 \end{tabular}
 \caption{Comparison of the average 3-fold cross validation results for two feature vectors:
@@ -460,7 +461,7 @@ using both Kinect and Xsens features versus using only Xsens featurs. }
 \begin{figure}[tb]
 \centering
 \includegraphics[trim={6cm 3.5cm 10cm 1.5cm}, clip, width=1\columnwidth]{fig/confusion-matrix.eps}
-\caption{Confusion matrix based on result from 3-fold cross validation using both Kinect and Xsens
+\caption{Per frame classification confusion matrix based on result from 3-fold cross validation using both Kinect and Xsens
 features. The numbers are percentages. The darker the color the higher the percentage.}
 \label{fig:confusion}
 \end{figure}
@@ -469,21 +470,22 @@ features. The numbers are percentages. The darker the color the higher the perce
 \begin{center}
 \begin{tabular}{|l|l|l|l|l|l|}
 \hline
-Hit & 843 & Missed & 49 & Mislabel & 7 \\
+Hit & 259 & Missed & 33 & Mislabel & 7 \\
 \hline
-Precision & 0.94 & Recall & 0.94 & F1 & 0.90\\
+Precision & 0.86 & Recall & 0.87 & F1 & 0.86\\
 \hline
-Start error & 0.3\% & Stop error & -2.33\% & ATSR & 0.92  \\
+Start error & 0.28\% & Stop error & -3.17\% & ATSR & 0.91  \\
 \hline
-\multicolumn{5}{|r|} {\textbf{Final Score}} & \textbf{0.9357}  \\
+\multicolumn{5}{|r|} {\textbf{Final Score}} & \textbf{0.871}  \\
 \hline
 \end{tabular}
-\caption{Training result using all the development data.}
+\caption{Final test result on unseen data.}
 \label{tab:dev-score}
 \end{center}
 \end{table}
 
-Using both the Kinect and the Xsens features, we also trained a model using all the development data (Table~\ref{tab:dev-score}). 
+Table~\ref{tab:dev-score} shows the final test result on unseen data based on 
+the model trained on all the development data using both the Kinect and the Xsens features.
 
 \section{Conclusions}
 Our gesture spotting method based on concatenated HMMs trained for the three gesture phases
