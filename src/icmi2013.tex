@@ -45,7 +45,7 @@
 %
 % For tracking purposes - this is V2.0 - May 2012
 
-\documentclass{acm_proc_article-sp}
+\documentclass{sig-alternate-2013}
 
 \usepackage{graphicx}
 \usepackage{caption}
@@ -73,7 +73,8 @@
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
-\title{ChAirGest 2013 - Continuous Gesture Spotting and Recognition}
+\title{Gesture Spotting and Recognition Using Salience
+Detection and Concatenated Hidden Markov Models}
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -116,18 +117,18 @@
 %
 % 1st. author
 \alignauthor
-% Ying Yin\\
-%        \affaddr{Massachusetts Institute of Technology}\\
-%        \affaddr{}\\
-%        \affaddr{}\\
-%        \email{yingyin@csail.mit.edu}
-% % 2nd. author
-% \alignauthor
-% Randall Davis \\
-%        \affaddr{Massachusetts Institute of Technology}\\
-%        \affaddr{}\\
-%        \affaddr{}\\
-%        \email{davis@csail.mit.edu}
+Ying Yin\\
+       \affaddr{Massachusetts Institute of Technology}\\
+       \affaddr{}\\
+       \affaddr{}\\
+       \email{yingyin@csail.mit.edu}
+% 2nd. author
+\alignauthor
+Randall Davis \\
+       \affaddr{Massachusetts Institute of Technology}\\
+       \affaddr{}\\
+       \affaddr{}\\
+       \email{davis@csail.mit.edu}
 }
 
 \maketitle
@@ -145,9 +146,17 @@ Presentation}[User Interfaces]
 \keywords{Gesture recognition, HMM, gesture spotting}
 
 \section{Introduction}
-The goal of ChAirGest 2013 challenge~\cite{Ruffieux2013} is to spot and recognize gestures independent of
-users. We present our approach, highlighting two main contributions: 
-improved hand position detection and gesture spotting.
+With the introduction of relatively low-cost sensors for tracking body or hand
+movement, such as Microsoft's Kinect and the Leap Motion sensor, we are observing 
+an increasing interest in using these sensors for natural human computer
+interaction.
+Gesture input is a main part of natural interaction, and as a result, improving the accuracy of
+continuous gesture spotting and recognition remains an important topic.
+
+We present our approach to the gesture spotting and recognition problem,
+highlighting two main contributions:
+improved hand position detection based on gesture salience and gesture spotting
+using concatenated hidden Markov models (HMMs).
 
 Our work builds on several related works. Marcos-Ramiro et al.~\cite{marcos2013} developed a method of computing hand likelihood maps based on RGB videos. 
 Our hand tracking method is similar, but we use both RGB and depth data. 
@@ -169,7 +178,6 @@ the shoulder center joint to
 form a 3-dimensional vector $\underline{x}_t^{\text{kinect}}$. Combining the two, we
 have a 12-dimensional feature vector $\underline{x}_t = [\underline{x}^\text{kinect}_t, \underline{x}^\text{xsens}_t]$.
 
-
 We use the Kinect skeleton tracking result for the shoulder center joint position,
 but do not use it for the hand position because
 it is not accurate when the hands are close to the body or when the hands are moving fast.
@@ -177,8 +185,9 @@ We developed an improved method for hand tracking based on gesture salience usin
 RGB and depth data.
 
 \subsection{Gesture Salience Detection}
-Similar to Marcos-Ramiro et al.~\cite{marcos2013}, we define gesture salience as a function of 
-the closeness of the motion to the observer (e.g., the camera) and the magnitude of the motion.
+Similar to Marcos-Ramiro et al.~\cite{marcos2013}, we define gesture
+\textit{salience} as a function of both the closeness of the motion to the
+observer (e.g., the camera) and the magnitude of the motion.
 There are 4 steps in our method (Figure~\ref{fig:gesture-salience}). 
 
 \begin{figure*}[tb]
@@ -285,7 +294,10 @@ rest or a non-rest position. It is a non-rest position if
 N(\underline{x}_t; \mu_{\text{NON-REST}}, \Sigma_{\text{NON-REST}}) \geq N(\underline{x}_t; \mu_{\text{REST}}, \Sigma_{\text{REST}})
 \end{displaymath}
 where $N$ represents the Gaussian probability. Sequences of continuous observations from non-rest
-positions longer than 0.25s are further classified into different gestures based on trained HMMs.
+positions longer than $d$ seconds are further classified into different
+gestures based on trained HMMs. The threshold value $d$ is the lower bound of
+gesture duration, and can be varied for different gesture sets. We set it to
+be 0.25s for our evaluation data set based on empirical result.
  
 \section{Gesture Spotting and Recognition}
 \subsection{Temporal Gesture Modeling and Training}
@@ -424,9 +436,14 @@ The second row is our segmentation and recognition result.
 The third row is the color-coded most probable hidden states. If a non-rest sequence does not contain hidden states belonging to the nucleus phase, 
 it is ignored (see the blue bar in the third row at $t\sim 30700$ in Figure~\ref{fig:decoding}). In
 this way, we can spot the actual gestures while filtering out other movements.
-\pagebreak
+
 \section{Experimental Evaluation}\label{sec:eval}
-We evaluate our method based on the development data set with 10 users and 900 total gesture occurrences.
+We evaluate our method based on the development data set from the ChAirGest
+corpus~\cite{Ruffieux2013} with gestures captured from 10 users. There are 900
+total gesture occurrences in the development data set representing three forth
+of the entire corpus. The remaining one forth of the corpus are not released to
+the public, and can be used for final evaluation on unseen data.
+
 Table~\ref{tab:comp-feature} shows the average result of a 3-fold cross validation where, in each fold,
 the model is trained on 2 sessions and tested on 1 session from every user. We compare
 the result based on two different feature vectors: using both Kinect and Xsens features versus using
@@ -453,7 +470,7 @@ Final Score & \textbf{0.9116} & 0.8953 \\
 \hline
 \end{tabular}
 \caption{Comparison of the average 3-fold cross validation results for two feature vectors:
-using both Kinect and Xsens features versus using only Xsens featurs. }
+using both Kinect and Xsens features versus using only Xsens features. }
 \label{tab:comp-feature}
 \end{center}
 \end{table}
@@ -486,11 +503,19 @@ Start error & 0.28\% & Stop error & -3.17\% & ATSR & 0.91  \\
 
 Table~\ref{tab:dev-score} shows the final test result on unseen data based on 
 the model trained on all the development data using both the Kinect and the Xsens features.
+This result is provided by the ChAirGest organizer after running our
+program.
 
 \section{Conclusions}
 Our gesture spotting method based on concatenated HMMs trained for the three gesture phases
 and Viterbi decoding gives a good result on the development data set. Using hand position features computed from
 Kinect data also helps to increase the gesture recognition accuracy. 
+
+For future works, we are going to apply discriminative training for learning the
+parameters of HMMs. We are also going to compare the HMM based method with the
+hidden conditional random field (HCRF) based methods \cite{morency07, wang06}.
+It would be interesting to explore whether we can also concatenate the HCRF
+models.
  
 %\end{document}  % This is where a 'short' article might terminate
 
@@ -504,7 +529,7 @@ Kinect data also helps to increase the gesture recognition accuracy.
 % latex bibtex latex latex
 % to resolve all references
 %
-
-\balancecolumns % GM June 2007
+\vfill\eject
+%\balancecolumns % GM June 2007
 % That's all folks!
 \end{document}
