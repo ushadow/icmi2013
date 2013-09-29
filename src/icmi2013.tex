@@ -65,11 +65,15 @@
 % \usepackage{setspace}
 % \doublespacing
 
+\clubpenalty=10000
+\widowpenalty=10000
+
 \begin{document}
 %
 % --- Author Metadata here ---
 \conferenceinfo{ICMI}{'13 Sydney Australia}
-%\CopyrightYear{2007} % Allows default copyright year (20XX) to be over-ridden - IF NEED BE.
+\CopyrightYear{2013} % Allows default copyright year (20XX) to be over-ridden -
+% IF NEED BE.
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
 
@@ -143,7 +147,7 @@ and an accurate temporal segmentation rate (ATSR) of 0.923. The average final sc
 \category{H.5.2}{Information Systems}{Information Interfaces and
 Presentation}[User Interfaces]
 
-\keywords{Gesture recognition, HMM, gesture spotting}
+\keywords{Gesture recognition; HMM; gesture spotting; Kinect}
 
 \section{Introduction}
 With the introduction of relatively low-cost sensors for tracking body or hand
@@ -168,7 +172,8 @@ In the following sections, we explain our system in three main parts: feature ex
 spotting and recognition.  
 
 \section{Hand Feature Extraction}
-We use both the Kinect and the Xsens data to extract hand motion feature vectors for gesture modeling. 
+We use both the Kinect and the Xsens data from the ChAirGest corpus~\cite{Ruffieux2013} to
+extract hand motion feature vectors for gesture modeling.
 It is relatively easy to obtain features from the Xsens data. We choose to use linear
 acceleration (x, y, z), angular velocity (x, y, z) and Euler orientation (yaw, pitch, roll)
 from the Xsens unit on the hand to form a 9-dimensional feature vector $\underline{x}_t^{\text{xsens}}$
@@ -450,8 +455,26 @@ the result based on two different feature vectors: using both Kinect and Xsens f
 only Xsens features. The result shows that including the relative hand position computed from 
 the Kinect data improves the F1 score by 1.7\%. 
 
-The per frame classification confusion matrix (Figure~\ref{fig:confusion}) shows that the most easily confused gestures
-are ``take from screen'' and ``push to screen''. These two gestures are very similar except for hand
+The ATSR score in Table~\ref{tab:comp-feature} stands for the accurate temporal
+segmentation rate which represents the performance of accurately
+detecting the start and stop points of gesture events~\cite{Ruffieux2013}.
+Let $e^\text{start}_i$ be the start error rate for a detected gesture nucleus
+$i$, and
+\begin{align*}
+e^\text{start}_i = \frac{\text{ground truth start time} - \text{detected start
+time}}{\text{ground truth duration of the gesture nucleus }i}
+\end{align*}
+The stop error rate, $e_i^\text{stop}$, is defined similarly.
+Let $n_{\text{hit}}$ be the number correctly recognized gestures (i.e., the
+label of the gesture nucleus $i$ is correct, and the absolute start error and
+the stop error rates are less than 50\%). The formula for ATSR
+is
+\begin{align*}
+ATSR = 1 - \frac{\sum_{i = 1}^{n_{\text{hit}}} |e^\text{start}_i| +
+|e_i^\text{stop}|}{2\cdot n_{\text{hit}}}
+\end{align*}
+
+The per frame classification confusion matrix (Figure~\ref{fig:confusion}) shows that the most easily confused gestures are ``take from screen'' and ``push to screen''. These two gestures are very similar except for hand
 poses. This suggest that by including hand pose features may further improve
 the recognition accuracy. There are also more confusions at the boundary between phases, e.g., 
 from rest to pre-stroke and from post-stroke to rest.
@@ -491,7 +514,9 @@ Hit & 259 & Missed & 33 & Mislabel & 7 \\
 \hline
 Precision & 0.86 & Recall & 0.87 & F1 & 0.86\\
 \hline
-Start error & 0.28\% & Stop error & -3.17\% & ATSR & 0.91  \\
+Avg. $e^\text{start}_i$ & 0.28\% & Avg. $e_i^\text{stop}$ & -3.17\% & ATSR &
+0.91
+\\
 \hline
 \multicolumn{5}{|r|} {\textbf{Final Score}} & \textbf{0.871}  \\
 \hline
@@ -506,7 +531,7 @@ the model trained on all the development data using both the Kinect and the Xsen
 This result is provided by the ChAirGest organizer after running our
 program.
 
-\section{Conclusions}
+\section{Conclusions and Future Works}
 Our gesture spotting method based on concatenated HMMs trained for the three gesture phases
 and Viterbi decoding gives a good result on the development data set. Using hand position features computed from
 Kinect data also helps to increase the gesture recognition accuracy. 
@@ -516,6 +541,9 @@ parameters of HMMs. We are also going to compare the HMM based method with the
 hidden conditional random field (HCRF) based methods \cite{morency07, wang06}.
 It would be interesting to explore whether we can also concatenate the HCRF
 models.
+
+For hand detection, we can apply temporal smoothing to depth data to
+see whether that helps to improve accuracy.
  
 %\end{document}  % This is where a 'short' article might terminate
 
