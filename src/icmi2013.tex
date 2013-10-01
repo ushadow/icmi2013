@@ -65,14 +65,23 @@
 % \usepackage{setspace}
 % \doublespacing
 
+\newfont{\mycrnotice}{ptmr8t at 7pt}
+\newfont{\myconfname}{ptmri8t at 7pt}
+\let\crnotice\mycrnotice%
+\let\confname\myconfname%
+
+\permission{Permission to make digital or hard copies of all or part of this work for personal or classroom use is granted without fee provided that copies are not made or distributed for profit or commercial advantage and that copies bear this notice and the full citation on the first page. Copyrights for components of this work owned by others than the author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or republish, to post on servers or to redistribute to lists, requires prior specific permission and/or a fee. Request permissions from permissions@acm.org.}
+\conferenceinfo{ICMI'13,}{December 9--13, 2013, Sydney, Australia \\
+{\mycrnotice{Copyright is held by the owner/author(s). Publication rights licensed to ACM.}}}
+\copyrightetc{ACM \the\acmcopyr}
+\crdata{978-1-4503-2129-7/13/12\ ...\$15.00.\\http://dx.doi.org/10.1145/2522848.2532588}
+
 \clubpenalty=10000
 \widowpenalty=10000
 
 \begin{document}
 %
 % --- Author Metadata here ---
-\conferenceinfo{ICMI}{'13 Sydney Australia}
-\CopyrightYear{2013} % Allows default copyright year (20XX) to be over-ridden -
 % IF NEED BE.
 %\crdata{0-12345-67-8/90/01}  % Allows default copyright data (0-89791-88-6/97/05) to be over-ridden - IF NEED BE.
 % --- End of Author Metadata ---
@@ -137,10 +146,13 @@ Randall Davis \\
 
 \maketitle
 \begin{abstract}
-We developed a gesture salience based hand tracking method and a gesture spotting method based on
-concatenated hidden Markov models.
+We developed a gesture salience based hand tracking method, and a gesture
+spotting and recognition method based on concatenated hidden Markov models.
 A 3-fold cross validation using the ChAirGest development data set with 10 users gives an F1 score of 0.907
-and an accurate temporal segmentation rate (ATSR) of 0.923. The average final score is 0.9116.
+and an accurate temporal segmentation rate (ATSR) of 0.923. The average final
+score is 0.9116. Compared with using the hand joint position from the Kinect
+SDK, using our hand tracking method gives a 3.7\% absolute increase in the
+recognition F1 score.
 \end{abstract}
 
 %A category including the fourth, optional field follows...
@@ -223,7 +235,7 @@ There are 4 steps in our method (Figure~\ref{fig:gesture-salience}).
 the similar colors between clothes and skin; \subref{fig:motion-mask} motion mask,  $M_{t\vee t-1}^M$, indicating moved pixels for time $t$ and $t-1$;
 \subref{fig:salience} salience map with red color indicating high probability of the salience; 
 \subref{fig:camshift} final gesture salience bounding box, $B_t$. (Best viewed in
-color.)}
+color. Based on data from ChAirGest corpus~\cite{Ruffieux2013}.)}
 \label{fig:gesture-salience}
 \end{figure*}
 
@@ -268,8 +280,13 @@ object. As a result, the center of $C_t$ may not be the center of the moving
 object (in our case, the user's hand). Hence, we use 2 iterations of Camshift~\cite{Bradski98} on 
 the depth image $D_t$ with a starting search location at the center of $C_t$ to refine
 the final bounding box, $B_t$, of gesture salience (Figure~\ref{fig:camshift}). 
+
 Figure~\ref{fig:compare-skeleton} shows examples of our hand tracking result (red regions). 
-It is more reliable than the hand joint locations from the Kinect SDK.
+It is more reliable than the hand joint locations from the Kinect SDK. In the
+Experimental Evaluation section (Section~\ref{sec:eval}), we show that using our 
+salience detection method to extract hand position features gives 3.7\%
+absolute increase in gesture recognition F1 score compared to using the hand
+joint position from the Kinect SDK.
 
 \begin{figure*}
 \centering
@@ -285,9 +302,14 @@ It is more reliable than the hand joint locations from the Kinect SDK.
 \subfigure[]{
 \includegraphics[width=0.23\linewidth]{fig/near-body-depth.eps}
 \hspace{-0.6em} }
-\caption{Comparison of hand tracking results. Our method (red region) gives more reliable result on hand tracking compared to the off-the-shelf Kinect software (green line). (Best viewed in color.)}
+\caption{Comparison of hand tracking results. Our method (red region) gives more
+reliable result on hand tracking compared to the off-the-shelf Kinect software
+(green line). (Best viewed in color. Based on data from ChAirGest
+corpus~\cite{Ruffieux2013}.)}
 \label{fig:compare-skeleton}
 \end{figure*}
+
+\vfill
 
 \section{Temporal Segmentation}\label{sec:recognition}
 We used all the training data from all the users to create a Gaussian model for the rest 
@@ -445,15 +467,49 @@ this way, we can spot the actual gestures while filtering out other movements.
 \section{Experimental Evaluation}\label{sec:eval}
 We evaluate our method based on the development data set from the ChAirGest
 corpus~\cite{Ruffieux2013} with gestures captured from 10 users. There are 900
-total gesture occurrences in the development data set representing three forth
-of the entire corpus. The remaining one forth of the corpus are not released to
+total gesture occurrences (3 recording sessions for each user) in the
+development data set representing three forth of the entire corpus. The remaining one forth of the corpus are not released to
 the public, and can be used for final evaluation on unseen data.
 
-Table~\ref{tab:comp-feature} shows the average result of a 3-fold cross validation where, in each fold,
-the model is trained on 2 sessions and tested on 1 session from every user. We compare
-the result based on two different feature vectors: using both Kinect and Xsens features versus using
-only Xsens features. The result shows that including the relative hand position computed from 
-the Kinect data improves the F1 score by 1.7\%. 
+\begin{table}[tb]
+\begin{center}
+\begin{tabular}{|l|p{2cm}|p{1.7cm}|p{1.7cm}|}
+\hline
+ & Hand position from salience detection \& Xsens (std.) & Hand positin
+ from Kinect skeleton \& Xsens (std.) & Xsens Only (std.)\\
+\hline
+F1 Score & \textbf{0.907 (0.01)} & 0.870 (0.02) & 0.890 (0.02) \\
+\hline
+ATSR Score & \textbf{0.923 (0.02)} & 0.930 (0.03) & 0.920 (0.01) \\
+\hline
+Final Score & \textbf{0.912 (0.01)} & 0.881 (0.01) & 0.895 (0.01) \\
+\hline
+\end{tabular}
+\caption{Comparison of the average 3-fold cross validation results for different
+feature vectors. Values in parentheses are standard deviations.}
+\label{tab:comp-feature}
+\end{center}
+\end{table}
+
+Table~\ref{tab:comp-feature} compares the gesture recognition performance using
+different methods of computing feature vectors while keeping the recognition
+method the same.
+They are the average results of 3-fold cross validations where, in each fold, the model is trained on 2 sessions and tested on 1 session from every user.
+The results help to answer the following questions:
+\begin{enumerate}
+  \item Does our salience based hand tracking method give better performance?
+  The first column in Table~\ref{tab:comp-feature} shows the results from
+  using the salience based method to compute relative hand positions, and the
+  second column are the results from using the hand joint positions from the
+  Kinect SDK's skeleton tracking (version 1.6). The salience base method gives
+  3.7\% absolute increase in the F1 score.
+  \item Does including the relative hand position in the feature vector help to
+  increase performance? The third column shows the results from using only Xsens
+  features. We observe that including the relative hand position computed
+  using our hand tracking method gives 1.7\% absolute increase in the F1 score.
+  However, using the hand positions from the Kinect SDK actually decreases the
+  performance.
+\end{enumerate}
 
 The ATSR score in Table~\ref{tab:comp-feature} stands for the accurate temporal
 segmentation rate which represents the performance of accurately
@@ -478,25 +534,6 @@ The per frame classification confusion matrix (Figure~\ref{fig:confusion}) shows
 poses. This suggest that by including hand pose features may further improve
 the recognition accuracy. There are also more confusions at the boundary between phases, e.g., 
 from rest to pre-stroke and from post-stroke to rest.
-
-\begin{table}[tb]
-\begin{center}
-\begin{tabular}{|l|l|l|}
-\hline
- & Kinect \& Xsens & Xsens Only \\
-\hline
-F1 Score & \textbf{0.907} & 0.890 \\
-\hline
-ATSR Score & \textbf{0.923} & 0.920 \\
-\hline
-Final Score & \textbf{0.9116} & 0.8953 \\
-\hline
-\end{tabular}
-\caption{Comparison of the average 3-fold cross validation results for two feature vectors:
-using both Kinect and Xsens features versus using only Xsens features. }
-\label{tab:comp-feature}
-\end{center}
-\end{table}
 
 \begin{figure}[tb]
 \centering
@@ -527,14 +564,21 @@ Avg. $e^\text{start}_i$ & 0.28\% & Avg. $e_i^\text{stop}$ & -3.17\% & ATSR &
 \end{table}
 
 Table~\ref{tab:dev-score} shows the final test result on unseen data based on 
-the model trained on all the development data using both the Kinect and the Xsens features.
+the model trained on all the development data using feature vectors computed
+from our salience based hand tracking method.
 This result is provided by the ChAirGest organizer after running our
-program.
+program. The decrease in performance may be due to the overfitting of the model
+on the development data.
+
+\vfill
 
 \section{Conclusions and Future Works}
-Our gesture spotting method based on concatenated HMMs trained for the three gesture phases
-and Viterbi decoding gives a good result on the development data set. Using hand position features computed from
-Kinect data also helps to increase the gesture recognition accuracy. 
+Our gesture spotting and recognition method based on concatenated HMMs trained
+for the three gesture phases and Viterbi decoding gives good results on the
+data set. Using hand position features computed from our gesture salience
+detection method also helps to increase the gesture recognition accuracy.
+Compared with using the hand position from the Kinect SDK, using our hand
+tracking method gives a 3.7\% absolute increase in the recognition F1 score.
 
 For future works, we are going to apply discriminative training for learning the
 parameters of HMMs. We are also going to compare the HMM based method with the
@@ -542,9 +586,10 @@ hidden conditional random field (HCRF) based methods \cite{morency07, wang06}.
 It would be interesting to explore whether we can also concatenate the HCRF
 models.
 
-For hand detection, we can apply temporal smoothing to depth data to
+For hand tracking, we can apply temporal smoothing to depth data to
 see whether that helps to improve accuracy.
  
+\vfill
 %\end{document}  % This is where a 'short' article might terminate
 
 % The following two commands are all you need in the
