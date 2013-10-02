@@ -448,21 +448,32 @@ separately.
 
 \begin{figure}[tb]
 \centering
-\includegraphics[trim={3.5cm 1.4cm 0cm 0.6cm}, clip, width=1\columnwidth]{fig/01-3-3.ps}
-\caption{Visualization of a gesture recognition sequence. 
-The pre-stroke and post-stroke phases are indicated by two orange colors (see the color bar). 
-The colors for the hidden states (3rd row) are not related 
-to the gestures. Instead the first 3 blues in the color bar are for the pre-stroke hidden states, the next 6 colors are for the nucleus, 
-the next 3 are for the post-stroke, and the last is for the rest state.}
+\includegraphics[trim={4cm 1cm 0cm 0.6cm}, clip,
+width=1\columnwidth]{fig/gesture.eps} \caption{Visualization of a gesture
+recognition sequence.
+The pre-stroke and post-stroke phases are indicated by two orange colors (see the color bar).}
 \label{fig:decoding}
+\end{figure}
+
+\begin{figure}[tb]
+\centering
+\includegraphics[trim={3.5cm 0cm 0.5cm 0cm}, clip,
+width=1\columnwidth]{fig/hiddenstates.eps} \caption{Visualization of the most
+probable hidden states of a gesture recognition sequence.
+Colors 1-3 indicate the pre-stroke hidden states, colors 4 - 9
+indicate the nucleus hidden states, colors 10 - 12 indicate the post-stroke
+hidden states, and color 14 indicates the rest state.}
+\label{fig:hiddenstates}
 \end{figure}
 
 Figure~\ref{fig:decoding} shows a recognition result visualization for one batch sequence. The first
 row is the ground truth with different colors indicating different gesture phases or the rest position. 
 The second row is our segmentation and recognition result.
-The third row is the color-coded most probable hidden states. If a non-rest sequence does not contain hidden states belonging to the nucleus phase, 
-it is ignored (see the blue bar in the third row at $t\sim 30700$ in Figure~\ref{fig:decoding}). In
-this way, we can spot the actual gestures while filtering out other movements.
+Figure~\ref{fig:hiddenstates} shows the color-coded most probable hidden states
+for the same sequence.
+If a non-rest sequence does not contain hidden states belonging to the nucleus
+phase, it is ignored (see the blue bar at $t\sim 30700$ in Figure~\ref{fig:hiddenstates}).
+In this way, we can spot the actual gestures while filtering out other movements.
 
 \section{Experimental Evaluation}\label{sec:eval}
 We evaluate our method based on the development data set from the ChAirGest
@@ -475,8 +486,8 @@ the public, and can be used for final evaluation on unseen data.
 \begin{center}
 \begin{tabular}{|l|p{2cm}|p{1.7cm}|p{1.7cm}|}
 \hline
- & Hand position from salience detection \& Xsens (std.) & Hand positin
- from Kinect skeleton \& Xsens (std.) & Xsens Only (std.)\\
+ & Hand position from salience detection \& Xsens & Hand position
+ from Kinect skeleton \& Xsens & Xsens Only \\
 \hline
 F1 Score & \textbf{0.907 (0.01)} & 0.870 (0.02) & 0.890 (0.02) \\
 \hline
@@ -569,8 +580,6 @@ from our salience based hand tracking method.
 This result is provided by the ChAirGest organizer after running our
 program. The decrease in performance may be due to the overfitting of the model
 on the development data.
-
-\vfill
 
 \section{Conclusions and Future Works}
 Our gesture spotting and recognition method based on concatenated HMMs trained
